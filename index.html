@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ANKUR — Early Childhood Tracking</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g900:#0f3d12; --g800:#1b5e20; --g700:#2e7d32; --g600:#388e3c;
+  --g500:#43a047; --g400:#66bb6a; --g300:#a5d6a7; --g200:#c8e6c9; --g100:#e8f5e9; --g50:#f1f8f1;
+  --r700:#c62828; --r500:#e53935; --r100:#ffebee; --r50:#fff5f5;
+  --a700:#e65100; --a500:#ff6f00; --a400:#ffa000; --a100:#fff8e1; --a50:#fffde7;
+  --b700:#0d47a1; --b500:#1565c0; --b100:#e3f2fd;
+  --gray-50:#fafafa; --gray-100:#f5f5f5; --gray-150:#f0f0f0; --gray-200:#eeeeee;
+  --gray-300:#e0e0e0; --gray-400:#bdbdbd; --gray-500:#9e9e9e; --gray-600:#757575;
+  --gray-700:#616161; --gray-800:#424242; --gray-900:#212121;
+  --white:#ffffff;
+  --font-hi:'Noto Sans Devanagari','Sora',sans-serif;
+  --font-en:'Sora',sans-serif;
+  --shadow-xs:0 1px 2px rgba(0,0,0,0.08);
+  --shadow-sm:0 2px 6px rgba(0,0,0,0.10);
+  --shadow-md:0 4px 14px rgba(0,0,0,0.12);
+  --shadow-lg:0 8px 28px rgba(0,0,0,0.16);
+  --shadow-green:0 4px 16px rgba(46,125,50,0.28);
+  --r4:4px; --r8:8px; --r12:12px; --r16:16px; --r20:20px; --r24:24px; --r32:32px; --rrnd:999px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{
+  font-family:var(--font-hi);
+  min-height:100vh;
+  background:radial-gradient(ellipse at 20% 10%, #1a3a1f 0%, #0c1e0e 40%, #0a0f0a 100%);
+  display:flex; flex-direction:column; align-items:center;
+  padding:24px 16px 48px;
+  position:relative; overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(165,214,167,0.06)'/%3E%3C/svg%3E") repeat;
+  pointer-events:none;z-index:0;
+}
+
+/* ── TOP LABEL ── */
+.app-label{
+  font-family:var(--font-en);
+  font-size:11px;font-weight:700;letter-spacing:3px;
+  color:rgba(165,214,167,0.7);text-transform:uppercase;
+  margin-bottom:20px;z-index:1;position:relative;
+  display:flex;align-items:center;gap:8px;
+}
+.app-label::before,.app-label::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(165,214,167,0.3),transparent);
+}
+
+/* ── PHONE SHELL ── */
+.phone{
+  width:393px;
+  background:var(--gray-100);
+  border-radius:50px;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.06),
+    0 0 0 10px rgba(0,0,0,0.8),
+    0 40px 100px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+  overflow:hidden;position:relative;z-index:1;
+  border:1px solid rgba(255,255,255,0.04);
+}
+.phone-shine{
+  position:absolute;top:0;left:0;right:0;height:60%;
+  background:linear-gradient(180deg,rgba(255,255,255,0.04) 0%,transparent 100%);
+  pointer-events:none;z-index:200;border-radius:50px 50px 0 0;
+}
+.dynamic-island{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:118px;height:34px;
+  background:#000;border-radius:20px;z-index:100;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,0.08);
+}
+.dynamic-island::after{
+  content:'';position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:50%;
+  background:radial-gradient(circle,#1a4a1a,#000);
+  box-shadow:0 0 0 2px rgba(0,255,0,0.1);
+}
+
+/* ── SCREENS ── */
+.screen{
+  display:none;flex-direction:column;
+  min-height:852px;position:relative;
+  background:var(--white);overflow:hidden;
+}
+.screen.active{display:flex;}
+.screen.anim-in{animation:slideIn 0.28s cubic-bezier(0.25,0.46,0.45,0.94);}
+.screen.anim-back{animation:slideBack 0.28s cubic-bezier(0.25,0.46,0.45,0.94);}
+@keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── STATUS BAR ── */
+.sbar{
+  height:56px;display:flex;align-items:flex-end;
+  justify-content:space-between;padding:0 28px 10px;
+  flex-shrink:0;position:relative;z-index:10;
+}
+.sbar-time{font-family:var(--font-en);font-size:15px;font-weight:700;}
+.sbar-icons{display:flex;gap:5px;align-items:center;}
+.sbar-icons svg{width:16px;height:16px;}
+
+/* ── TOP BAR ── */
+.tbar{
+  height:54px;display:flex;align-items:center;
+  padding:0 16px;gap:12px;flex-shrink:0;
+  position:relative;z-index:5;
+}
+.tbar-green{background:var(--g700);}
+.tbar-white{background:var(--white);border-bottom:1px solid var(--gray-200);}
+.tbar-transparent{background:transparent;position:absolute;top:56px;left:0;right:0;}
+.tbar-title{font-size:17px;font-weight:700;flex:1;text-align:center;}
+.tbar-title.w{color:var(--white);}
+.tbar-title.d{color:var(--gray-900);}
+.icon-btn{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .15s;flex-shrink:0;
+}
+.icon-btn:hover{background:rgba(0,0,0,0.08);}
+.icon-btn.w:hover{background:rgba(255,255,255,0.18);}
+.icon-btn svg{width:22px;height:22px;}
+
+/* ── SCROLL WRAPPER ── */
+.scroll{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.scroll::-webkit-scrollbar{display:none;}
+.pad{padding:16px 20px 24px;}
+
+/* ── BOTTOM NAV ── */
+.bnav{
+  height:78px;background:var(--white);
+  border-top:1px solid var(--gray-200);
+  display:flex;align-items:center;
+  padding:0 4px 10px;flex-shrink:0;
+}
+.ni{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;gap:4px;cursor:pointer;
+  padding:8px 6px;border-radius:var(--r12);
+  transition:all .15s;
+}
+.ni:hover{background:var(--g100);}
+.ni svg{width:23px;height:23px;}
+.ni-label{font-size:10px;font-weight:600;color:var(--gray-500);}
+.ni.on .ni-label{color:var(--g700);}
+.ni.on .ni-dot{display:block;}
+.ni-dot{display:none;width:4px;height:4px;border-radius:50%;background:var(--g600);margin-top:1px;}
+.ni-pip{
+  width:34px;height:34px;border-radius:var(--r8);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.ni.on .ni-pip{background:var(--g100);}
+
+/* ── BUTTONS ── */
+.btn{
+  width:100%;height:52px;border:none;border-radius:var(--r12);
+  font-family:var(--font-hi);font-size:15px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .18s;position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,0);transition:.15s;
+}
+.btn:active::after{background:rgba(255,255,255,0.12);}
+.btn-p{background:var(--g700);color:var(--white);box-shadow:var(--shadow-green);}
+.btn-p:hover{background:var(--g800);transform:translateY(-1px);box-shadow:0 6px 20px rgba(46,125,50,0.36);}
+.btn-p:active{transform:translateY(0);}
+.btn-s{background:transparent;color:var(--g700);border:1.5px solid var(--g400);}
+.btn-s:hover{background:var(--g100);}
+.btn-wa{background:#25D366;color:var(--white);box-shadow:0 4px 14px rgba(37,211,102,0.3);}
+.btn-wa:hover{background:#22c55e;}
+.btn-danger{background:var(--r500);color:var(--white);}
+.btn-danger:hover{background:var(--r700);}
+.btn-sm{
+  height:40px;font-size:13px;font-weight:600;border-radius:var(--r8);
+  border:none;padding:0 16px;cursor:pointer;transition:all .15s;
+  font-family:var(--font-hi);
+}
+.btn-sm-p{background:var(--g700);color:var(--white);}
+.btn-sm-a{background:var(--a400);color:var(--white);}
+
+/* ── INPUT ── */
+.igroup{margin-bottom:14px;}
+.ilabel{font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:5px;display:block;letter-spacing:.3px;}
+.ifield{
+  width:100%;height:50px;
+  border:1.5px solid var(--gray-300);border-radius:var(--r12);
+  padding:0 14px;font-size:15px;font-family:var(--font-hi);
+  color:var(--gray-900);background:var(--white);outline:none;
+  transition:border .15s,box-shadow .15s;
+}
+.ifield:focus{border-color:var(--g600);box-shadow:0 0 0 3px rgba(56,142,60,0.12);}
+.ifield::placeholder{color:var(--gray-400);}
+.iselect{
+  width:100%;height:50px;
+  border:1.5px solid var(--gray-300);border-radius:var(--r12);
+  padding:0 36px 0 14px;font-size:15px;font-family:var(--font-hi);
+  color:var(--gray-900);background:var(--white);outline:none;
+  appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+.iselect:focus{border-color:var(--g600);box-shadow:0 0 0 3px rgba(56,142,60,0.12);outline:none;}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:var(--rrnd);
+  font-size:11px;font-weight:700;line-height:1.5;
+}
+.bg{background:var(--g100);color:var(--g800);}
+.ba{background:var(--a100);color:var(--a700);}
+.br{background:var(--r100);color:var(--r700);}
+.bb{background:var(--b100);color:var(--b700);}
+.bg-pill{background:var(--g200);color:var(--g800);}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dg{background:var(--g500);}.da{background:var(--a400);}.dr{background:var(--r500);}
+
+/* ── CARDS ── */
+.card{
+  background:var(--white);border-radius:var(--r16);
+  padding:16px;border:1px solid var(--gray-200);
+  margin-bottom:12px;box-shadow:var(--shadow-xs);
+  transition:box-shadow .15s;
+}
+.card:hover{box-shadow:var(--shadow-sm);}
+.card-action{cursor:pointer;}
+
+/* ── SECTION LABEL ── */
+.slabel{
+  font-size:11px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--gray-500);
+  margin-bottom:10px;margin-top:22px;display:flex;align-items:center;gap:6px;
+}
+.slabel:first-child{margin-top:0;}
+.slabel::after{content:'';flex:1;height:1px;background:var(--gray-200);}
+
+/* ── CHILD LIST ITEM ── */
+.ci{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 20px;background:var(--white);
+  border-bottom:1px solid var(--gray-100);
+  cursor:pointer;transition:background .12s;
+}
+.ci:hover{background:var(--g50);}
+.ci:active{background:var(--g100);}
+.ca{
+  width:50px;height:50px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;border:2px solid transparent;
+}
+.ca-b{background:#E3F2FD;border-color:#BBDEFB;}
+.ca-p{background:#FCE4EC;border-color:#F8BBD0;}
+.ca-o{background:#FFF3E0;border-color:#FFE0B2;}
+.ca-v{background:#EDE7F6;border-color:#D1C4E9;}
+.ci-info{flex:1;min-width:0;}
+.ci-name{font-size:15px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+.ci-age{font-size:12px;color:var(--gray-500);margin-bottom:5px;}
+
+/* ── SEARCH ── */
+.search{
+  display:flex;align-items:center;gap:10px;
+  background:var(--gray-100);border-radius:var(--r12);
+  padding:11px 14px;margin-bottom:12px;
+  border:1.5px solid transparent;transition:all .15s;
+}
+.search:focus-within{background:var(--white);border-color:var(--g400);box-shadow:0 0 0 3px rgba(56,142,60,0.1);}
+.search input{flex:1;border:none;background:transparent;font-size:14px;font-family:var(--font-hi);outline:none;color:var(--gray-900);}
+.search input::placeholder{color:var(--gray-400);}
+
+/* ── FILTER CHIPS ── */
+.frow{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.frow::-webkit-scrollbar{display:none;}
+.fchip{
+  padding:7px 14px;border-radius:var(--rrnd);font-size:12px;font-weight:600;
+  white-space:nowrap;cursor:pointer;
+  border:1.5px solid var(--gray-300);background:var(--white);color:var(--gray-700);
+  transition:all .15s;flex-shrink:0;
+}
+.fchip.on{background:var(--g700);color:var(--white);border-color:var(--g700);}
+.fchip:hover:not(.on){background:var(--g50);border-color:var(--g400);}
+
+/* ── FAB ── */
+.fab{
+  position:absolute;right:20px;bottom:90px;
+  width:58px;height:58px;border-radius:50%;
+  background:var(--g700);
+  box-shadow:0 6px 22px rgba(46,125,50,0.45);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:20;transition:all .2s;
+  border:2px solid rgba(255,255,255,0.15);
+}
+.fab:hover{background:var(--g800);transform:scale(1.06);}
+.fab svg{width:28px;height:28px;}
+
+/* ── PROGRESS ── */
+.pbar{height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;margin:5px 0;}
+.pfill{height:100%;border-radius:3px;background:var(--g600);transition:width .5s ease;}
+.pbar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pl{font-size:12px;color:var(--gray-700);min-width:72px;font-weight:600;}
+.pv{font-size:12px;font-weight:700;min-width:34px;text-align:right;}
+
+/* ── OTP ── */
+.otp-row{display:flex;gap:10px;justify-content:center;margin:28px 0;}
+.otp-box{
+  width:62px;height:68px;border:2px solid var(--gray-300);border-radius:var(--r12);
+  font-family:var(--font-en);font-size:26px;font-weight:800;
+  text-align:center;display:flex;align-items:center;justify-content:center;
+  color:var(--gray-900);background:var(--white);transition:border .15s,box-shadow .15s;
+}
+.otp-box.ok{border-color:var(--g600);box-shadow:0 0 0 3px rgba(56,142,60,0.12);background:var(--g50);}
+
+/* ── DIVIDER ── */
+.or-div{
+  display:flex;align-items:center;gap:12px;
+  margin:18px 0;color:var(--gray-400);font-size:13px;
+}
+.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--gray-200);}
+
+/* ── ALERTS ── */
+.alert{
+  border-radius:var(--r12);padding:13px 15px;
+  margin-bottom:12px;display:flex;gap:11px;align-items:flex-start;
+}
+.alert.warn{background:var(--a50);border-left:4px solid var(--a400);}
+.alert.succ{background:var(--g100);border-left:4px solid var(--g500);}
+.alert.dang{background:var(--r50);border-left:4px solid var(--r500);}
+.alert.info{background:var(--b100);border-left:4px solid var(--b500);}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.alert-text{font-size:13px;line-height:1.6;color:var(--gray-800);}
+.alert-text strong{font-weight:700;}
+
+/* ── DOMAIN GRID ── */
+.dgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0;}
+.di{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--gray-50);border-radius:var(--r12);padding:12px 8px;
+  border:1px solid var(--gray-200);cursor:pointer;transition:all .15s;
+}
+.di:hover{background:var(--g50);border-color:var(--g300);}
+.di-icon{font-size:24px;}
+.di-name{font-size:11px;font-weight:600;color:var(--gray-700);text-align:center;line-height:1.3;}
+
+/* ── STAT ROW ── */
+.srow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0;}
+.sc{padding:14px 10px;border-radius:var(--r16);text-align:center;}
+.sn{font-size:30px;font-weight:800;margin-bottom:3px;line-height:1;}
+.sk{font-size:11px;font-weight:600;line-height:1.3;}
+.sc-g{background:linear-gradient(135deg,var(--g100),var(--g200));}
+.sc-g .sn{color:var(--g800);} .sc-g .sk{color:var(--g700);}
+.sc-a{background:linear-gradient(135deg,var(--a100),#ffe0a0);}
+.sc-a .sn{color:var(--a700);} .sc-a .sk{color:#bf360c;}
+.sc-r{background:linear-gradient(135deg,var(--r100),#ffcdd2);}
+.sc-r .sn{color:var(--r700);} .sc-r .sk{color:#b71c1c;}
+
+/* ── QR ── */
+.qr-wrap{
+  background:var(--white);border:2px solid var(--gray-200);
+  border-radius:var(--r16);padding:20px;
+  display:flex;align-items:center;justify-content:center;
+  margin:16px 0;box-shadow:var(--shadow-sm);
+}
+.qr-svg{width:160px;height:160px;}
+
+/* ── MAP ── */
+.map-box{
+  height:170px;border-radius:var(--r16);
+  background:linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 50%,#b2dfdb 100%);
+  position:relative;overflow:hidden;margin-bottom:16px;
+  border:1px solid var(--g300);
+}
+.map-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.25) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.25) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+.map-road-h{position:absolute;height:3px;background:rgba(255,255,255,0.65);left:0;right:0;}
+.map-road-v{position:absolute;width:3px;background:rgba(255,255,255,0.65);top:0;bottom:0;}
+.map-pin{position:absolute;width:26px;height:34px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .15s;}
+.map-pin:hover{transform:scale(1.2);}
+.pin-c{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.pin-c::after{content:'';width:8px;height:8px;background:white;border-radius:50%;transform:rotate(45deg);}
+.pin-g{background:var(--g600);}.pin-r{background:var(--r500);}.pin-a{background:var(--a400);}
+
+/* ── REFERRAL ── */
+.letter{
+  background:#fffef8;border:1px solid var(--gray-300);
+  border-radius:var(--r16);padding:20px;position:relative;
+  box-shadow:var(--shadow-sm);
+}
+.letter-hdr{
+  display:flex;align-items:center;gap:12px;
+  border-bottom:2.5px solid var(--g700);
+  padding-bottom:14px;margin-bottom:16px;
+}
+.letter-logo{
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g800),var(--g500));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  flex-shrink:0;box-shadow:var(--shadow-sm);
+}
+.letter-row{display:flex;margin-bottom:7px;font-size:13px;line-height:1.6;}
+.letter-k{font-weight:700;min-width:130px;color:var(--gray-700);}
+.letter-v{color:var(--gray-900);}
+.stamp{
+  position:absolute;right:18px;bottom:18px;
+  width:72px;height:72px;border-radius:50%;
+  border:3px solid var(--g700);opacity:.45;
+  transform:rotate(-15deg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:8.5px;font-weight:800;color:var(--g700);text-align:center;line-height:1.4;
+}
+
+/* ── SCORE CIRCLE ── */
+.score-c{
+  width:108px;height:108px;border-radius:50%;
+  background:conic-gradient(var(--a400) 70%,var(--gray-200) 0);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 12px;
+}
+.score-inner{
+  width:82px;height:82px;border-radius:50%;background:var(--white);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.06);
+}
+.score-num{font-family:var(--font-en);font-size:26px;font-weight:800;color:var(--a500);}
+.score-of{font-size:10px;color:var(--gray-500);}
+
+/* ── QUESTION CARD ── */
+.qcard{
+  background:var(--white);border-radius:var(--r16);
+  padding:22px 18px;box-shadow:var(--shadow-md);
+  border:1px solid var(--gray-200);margin-bottom:18px;
+}
+.qnum{font-size:11px;color:var(--gray-500);font-weight:700;margin-bottom:8px;letter-spacing:.5px;}
+.qtext{font-size:16px;font-weight:700;color:var(--gray-900);line-height:1.55;margin-bottom:6px;}
+.qex{font-size:13px;color:var(--gray-600);font-style:italic;line-height:1.6;}
+.ans-row{display:flex;gap:12px;margin-top:20px;}
+.abtn{
+  flex:1;height:54px;border:none;border-radius:var(--r12);
+  font-size:16px;font-weight:800;font-family:var(--font-hi);
+  cursor:pointer;transition:all .15s;
+}
+.ay{background:linear-gradient(135deg,var(--g500),var(--g700));color:var(--white);}
+.ay:hover{background:linear-gradient(135deg,var(--g600),var(--g800));}
+.an{background:linear-gradient(135deg,#ef5350,var(--r700));color:var(--white);}
+.an:hover{background:linear-gradient(135deg,var(--r500),#9c1515);}
+.radio-g{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.ri{display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border-radius:var(--r8);border:1.5px solid var(--gray-200);transition:all .15s;}
+.ri:hover{background:var(--g50);border-color:var(--g300);}
+.rcircle{width:20px;height:20px;border-radius:50%;border:2px solid var(--gray-300);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.rcircle.sel{border-color:var(--g600);}
+.rinner{width:10px;height:10px;border-radius:50%;background:var(--g600);}
+.rlabel{font-size:15px;color:var(--gray-800);}
+
+/* ── INFO ROW ── */
+.irow{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--gray-100);}
+.irow:last-child{border-bottom:none;}
+.irow-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0;}
+.irow-c{flex:1;}
+.irow-k{font-size:11px;color:var(--gray-500);margin-bottom:2px;}
+.irow-v{font-size:14px;font-weight:600;color:var(--gray-900);}
+
+/* ── LOGIN HERO ── */
+.login-hero{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px 24px 16px;
+  background:linear-gradient(180deg,var(--g100) 0%,var(--white) 65%);
+  position:relative;overflow:hidden;
+}
+.login-hero::before{
+  content:'';position:absolute;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(165,214,167,0.25) 0%,transparent 70%);
+  top:-80px;left:50%;transform:translateX(-50%);
+}
+.app-logo{
+  width:84px;height:84px;border-radius:var(--r24);
+  background:linear-gradient(145deg,var(--g600),var(--g800));
+  display:flex;align-items:center;justify-content:center;
+  font-size:40px;margin-bottom:14px;
+  box-shadow:0 10px 32px rgba(46,125,50,0.35),0 2px 8px rgba(46,125,50,0.2);
+  position:relative;z-index:1;
+}
+.app-name{
+  font-family:var(--font-en);font-size:38px;font-weight:800;
+  color:var(--g800);letter-spacing:3px;margin-bottom:5px;
+  position:relative;z-index:1;
+}
+.app-tag{font-size:14px;color:var(--gray-600);margin-bottom:4px;position:relative;z-index:1;}
+.app-sub{font-size:12px;color:var(--gray-400);margin-bottom:30px;position:relative;z-index:1;}
+.hero-kids{font-size:52px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.08));position:relative;z-index:1;display:flex;gap:4px;}
+
+/* ── ACTION SHEET ── */
+.asheet{
+  background:var(--white);
+  border-top:1px solid var(--gray-200);
+  padding:18px 20px 24px;flex-shrink:0;
+}
+
+/* ── PROFILE HEADER ── */
+.prof-hdr{
+  background:linear-gradient(145deg,var(--g800) 0%,var(--g600) 100%);
+  padding:64px 20px 24px;position:relative;
+}
+.prof-hdr::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:30px;
+  background:var(--white);border-radius:28px 28px 0 0;
+}
+
+/* ── ENROLL SUCCESS ── */
+.enroll-ok{
+  background:linear-gradient(135deg,var(--g100),var(--g200));
+  border-radius:var(--r16);padding:22px 20px;
+  text-align:center;margin-bottom:16px;
+  border:1px solid var(--g300);
+}
+
+/* ── WELCOME BANNER ── */
+.welcome-banner{
+  background:linear-gradient(135deg,var(--g700),var(--g500));
+  border-radius:var(--r16);padding:16px 18px;margin-bottom:16px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:var(--shadow-green);
+}
+.wb-avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;
+}
+.wb-name{font-size:17px;font-weight:800;color:var(--white);}
+.wb-center{font-size:12px;color:rgba(255,255,255,0.8);margin-top:2px;}
+
+/* ── QUICK ACTIONS ── */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.qa{
+  background:var(--white);border:1px solid var(--gray-200);
+  border-radius:var(--r16);padding:16px 14px;
+  cursor:pointer;transition:all .18s;
+  display:flex;flex-direction:column;gap:8px;
+  box-shadow:var(--shadow-xs);
+}
+.qa:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--g300);}
+.qa-icon{font-size:26px;}
+.qa-title{font-size:13px;font-weight:700;color:var(--gray-900);}
+.qa-sub{font-size:11px;color:var(--gray-500);}
+
+/* ── CHIP ── */
+.chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;background:var(--g100);
+  border-radius:var(--rrnd);font-size:11px;font-weight:600;color:var(--g800);
+}
+
+/* ── MINI PROGRESS RING ── */
+.ring-wrap{position:relative;width:44px;height:44px;flex-shrink:0;}
+.ring-wrap svg{width:44px;height:44px;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--gray-200);stroke-width:3.5;}
+.ring-fg{fill:none;stroke-width:3.5;stroke-linecap:round;transition:stroke-dashoffset .5s;}
+.ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-en);font-size:11px;font-weight:700;}
+
+/* ── NOTIFICATION DOT ── */
+.noti-dot{
+  position:absolute;top:-3px;right:-3px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--r500);border:2px solid var(--white);
+  font-size:9px;font-weight:800;color:white;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── OVERVIEW CHART (supervisor) ── */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;margin:12px 0;}
+.bc-bar{flex:1;border-radius:var(--r4) var(--r4) 0 0;min-width:24px;transition:opacity .15s;cursor:pointer;}
+.bc-bar:hover{opacity:.8;}
+.bc-label{font-size:9px;color:var(--gray-500);text-align:center;margin-top:4px;}
+
+/* responsive: ensure phone fits small screens */
+@media(max-width:450px){.phone{width:100%;border-radius:32px;}}
+</style>
+</head>
+<body>
+
+<div class="app-label">ANKUR · Early Childhood Tracking · 10 Screens</div>
+
+<div class="phone">
+  <div class="phone-shine"></div>
+  <div class="dynamic-island"></div>
+
+  <!-- ═══ S01 LOGIN ═══ -->
+  <div class="screen active" id="s01">
+    <div class="sbar">
+      <span class="sbar-time">9:41</span>
+      <div class="sbar-icons">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M3.5 9C7.1 5.5 10.05 4 12 4s4.9 1.5 8.5 5" stroke="#111" stroke-width="2" stroke-linecap="round"/><path d="M6 11.5C8.67 9 10.33 8 12 8s3.33 1 6 3.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg>
+        <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="15" height="10" rx="2" stroke="#111" stroke-width="2"/><path d="M17 10h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2" stroke="#111" stroke-width="2"/></svg>
+      </div>
+    </div>
+    <div class="login-hero">
+      <div class="app-logo">🌱</div>
+      <div class="app-name">ANKUR</div>
+      <div class="app-tag">हर बच्चे का विकास, हमारी जिम्मेदारी</div>
+      <div class="app-sub">आंगनवाड़ी कार्यकर्ता पोर्टल</div>
+      <div class="hero-kids">👧🏽 👦🏾 👧🏿 👦🏽</div>
+    </div>
+    <div class="asheet">
+      <div class="igroup">
+        <label class="ilabel">📱 मोबाइल नंबर</label>
+        <input class="ifield" type="tel" placeholder="+91 00000 00000">
+      </div>
+      <button class="btn btn-p" onclick="goTo('s02')">
+        OTP भेजें
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="or-div">या</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-s" style="font-size:13px;" onclick="goTo('s02')">📧 ईमेल से</button>
+        <button class="btn btn-s" style="font-size:13px;background:#1877F2;color:white;border:none;" onclick="goTo('s02')">🔵 Google</button>
+      </div>
+      <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--gray-400);">
+        🔒 सुरक्षित लॉगिन · ICDS अनुपालन · WCD मंत्रालय
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S02 OTP ═══ -->
+  <div class="screen" id="s02">
+    <div class="sbar">
+      <span class="sbar-time">9:41</span>
+      <div class="sbar-icons">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg>
+        <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="15" height="10" rx="2" stroke="#111" stroke-width="2"/><path d="M17 10h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2" stroke="#111" stroke-width="2"/></svg>
+      </div>
+    </div>
+    <div class="tbar tbar-white">
+      <div class="icon-btn" onclick="goTo('s01')">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="#333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="tbar-title d"></div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll">
+      <div style="display:flex;flex-direction:column;align-items:center;padding:36px 28px 24px;">
+        <div style="width:92px;height:92px;border-radius:50%;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:22px;border:3px solid var(--g300);box-shadow:0 4px 18px rgba(56,142,60,0.15);">🔐</div>
+        <div style="font-size:22px;font-weight:800;color:var(--gray-900);margin-bottom:8px;">OTP सत्यापन</div>
+        <div style="font-size:14px;color:var(--gray-600);text-align:center;line-height:1.6;margin-bottom:4px;">आपके मोबाइल नंबर पर भेजा गया<br><strong>6-अंकीय OTP दर्ज करें</strong></div>
+        <div style="font-size:13px;color:var(--g700);font-weight:600;margin-bottom:4px;">+91 98765 43210</div>
+        <div class="otp-row">
+          <div class="otp-box ok">8</div>
+          <div class="otp-box ok">3</div>
+          <div class="otp-box ok">4</div>
+          <div class="otp-box ok">7</div>
+          <div class="otp-box">_</div>
+          <div class="otp-box">_</div>
+        </div>
+        <div style="color:var(--g700);font-size:14px;font-weight:600;margin-bottom:28px;cursor:pointer;">↺ OTP पुनः भेजें <span style="color:var(--gray-500);">(00:38)</span></div>
+        <div style="width:100%;">
+          <button class="btn btn-p" onclick="goTo('s03')" style="width:100%;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Verify करें
+          </button>
+        </div>
+        <div style="margin-top:24px;text-align:center;">
+          <div style="font-size:12px;color:var(--gray-400);">🔒 256-bit SSL एन्क्रिप्शन</div>
+          <div style="margin-top:4px;font-size:11px;color:var(--gray-400);">ANKUR v2.1 · ICDS · WCD मंत्रालय</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S03 CHILDREN LIST ═══ -->
+  <div class="screen" id="s03">
+    <div class="sbar" style="background:var(--g700);">
+      <span class="sbar-time" style="color:white;">9:41</span>
+      <div class="sbar-icons">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M3.5 9C7.1 5.5 10.05 4 12 4s4.9 1.5 8.5 5" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M6 11.5C8.67 9 10.33 8 12 8s3.33 1 6 3.5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="white"/></svg>
+        <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="15" height="10" rx="2" stroke="white" stroke-width="2"/><path d="M17 10h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2" stroke="white" stroke-width="2"/></svg>
+      </div>
+    </div>
+    <div class="tbar tbar-green">
+      <div style="width:36px"></div>
+      <div class="tbar-title w">बच्चों की सूची</div>
+      <div class="icon-btn w" style="position:relative;">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="white" stroke-width="2" fill="none"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="2"/></svg>
+        <div class="noti-dot">2</div>
+      </div>
+    </div>
+    <div class="scroll">
+      <div style="padding:14px 16px 6px;">
+        <div class="welcome-banner">
+          <div class="wb-avatar">👩🏽</div>
+          <div>
+            <div class="wb-name">राधा देवी</div>
+            <div class="wb-center">🏠 आंगनवाड़ी केंद्र-12 · पुणे</div>
+          </div>
+          <div style="margin-left:auto;text-align:right;">
+            <div style="font-size:22px;font-weight:800;color:white;font-family:'Sora',sans-serif;">34</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.75);">बच्चे</div>
+          </div>
+        </div>
+
+        <div class="srow" style="margin-bottom:6px;">
+          <div class="sc sc-g"><div class="sn">22</div><div class="sk">🟢 सामान्य</div></div>
+          <div class="sc sc-a"><div class="sn">8</div><div class="sk">🟡 ध्यान दें</div></div>
+          <div class="sc sc-r"><div class="sn">4</div><div class="sk">🔴 अत्यावश्यक</div></div>
+        </div>
+
+        <div class="search" style="margin-top:14px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="#999" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="#999" stroke-width="2" stroke-linecap="round"/></svg>
+          <input placeholder="बच्चे का नाम खोजें..." type="text">
+        </div>
+        <div class="frow">
+          <div class="fchip on">सभी (34)</div>
+          <div class="fchip">🟢 सामान्य</div>
+          <div class="fchip">🟡 ध्यान दें</div>
+          <div class="fchip">🔴 अत्यावश्यक</div>
+        </div>
+      </div>
+
+      <div class="ci" onclick="goTo('s06')">
+        <div class="ca ca-b">👦🏽</div>
+        <div class="ci-info">
+          <div class="ci-name">आरव शर्मा</div>
+          <div class="ci-age">3 वर्ष 2 माह · मोबाइल: 98765 43210</div>
+          <span class="badge bg"><span class="dot dg"></span>हरी (सामान्य विकास)</span>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ci" onclick="goTo('s06')">
+        <div class="ca ca-p">👧🏾</div>
+        <div class="ci-info">
+          <div class="ci-name">सिया वर्मा</div>
+          <div class="ci-age">2 वर्ष 8 माह · मोबाइल: 99001 22334</div>
+          <span class="badge ba"><span class="dot da"></span>पीली (सामान्य जोखिम)</span>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ci" onclick="goTo('s06')">
+        <div class="ca ca-o">👦🏿</div>
+        <div class="ci-info">
+          <div class="ci-name">विवान यादव</div>
+          <div class="ci-age">3 वर्ष 5 माह · मोबाइल: 97890 11223</div>
+          <span class="badge br"><span class="dot dr"></span>लाल (उच्च जोखिम)</span>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ci" onclick="goTo('s06')">
+        <div class="ca ca-v">👧🏽</div>
+        <div class="ci-info">
+          <div class="ci-name">अनन्या गुप्ता</div>
+          <div class="ci-age">4 वर्ष 1 माह · मोबाइल: 96500 44556</div>
+          <span class="badge bg"><span class="dot dg"></span>हरी (सामान्य विकास)</span>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ci" onclick="goTo('s06')">
+        <div class="ca ca-b">👦🏽</div>
+        <div class="ci-info">
+          <div class="ci-name">रोहन मिश्रा</div>
+          <div class="ci-age">2 वर्ष 11 माह · मोबाइल: 98112 77889</div>
+          <span class="badge ba"><span class="dot da"></span>पीली (सामान्य जोखिम)</span>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ci" onclick="goTo('s06')">
+        <div class="ca ca-p">👧🏿</div>
+        <div class="ci-info">
+          <div class="ci-name">दिव्या राव</div>
+          <div class="ci-age">5 वर्ष 0 माह · मोबाइल: 93456 00112</div>
+          <span class="badge br"><span class="dot dr"></span>लाल (उच्च जोखिम)</span>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#ccc" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div style="padding:14px 20px;text-align:center;color:var(--gray-400);font-size:12px;margin-bottom:8px;">
+        और 28 बच्चे · कुल 34 दर्ज हैं
+      </div>
+    </div>
+
+    <div class="fab" onclick="goTo('s04')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+    </div>
+
+    <div class="bnav">
+      <div class="ni on" onclick="goTo('s03')">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" fill="#2E7D32"/></svg></div>
+        <span class="ni-label">होम</span>
+        <div class="ni-dot"></div>
+      </div>
+      <div class="ni" onclick="goTo('s10')">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="#9E9E9E"/><path d="M8 12h8M8 8h8M8 16h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="ni-label">रिपोर्ट</span>
+      </div>
+      <div class="ni" style="position:relative;" onclick="goTo('s11')">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#9E9E9E" stroke-width="2" fill="none"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#9E9E9E" stroke-width="2"/></svg></div>
+        <span class="ni-label">सूचना</span>
+        <div class="noti-dot" style="bottom:22px;right:10px;left:auto;top:auto;">2</div>
+      </div>
+      <div class="ni" onclick="goTo('s12')">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9E9E9E"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#9E9E9E" stroke-width="2" fill="none"/></svg></div>
+        <span class="ni-label">प्रोफाइल</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S04 ENROLL ═══ -->
+  <div class="screen" id="s04">
+    <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg></div></div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s03')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbar-title w">नया बच्चा नामांकित करें</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <div class="alert info"><div class="alert-icon">ℹ️</div><div class="alert-text">बच्चे का नामांकन बिना आधार के भी किया जा सकता है। <strong>नाम और उम्र अनिवार्य हैं।</strong></div></div>
+
+      <div class="igroup"><label class="ilabel">👦 बच्चे का नाम <span style="color:var(--r500)">*</span></label><input class="ifield" placeholder="नाम दर्ज करें"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="igroup"><label class="ilabel">🎂 उम्र (वर्ष) <span style="color:var(--r500)">*</span></label><input class="ifield" type="number" placeholder="वर्ष"></div>
+        <div class="igroup"><label class="ilabel">📅 माह</label><input class="ifield" type="number" placeholder="माह"></div>
+      </div>
+      <div class="igroup">
+        <label class="ilabel">⚧ लिंग</label>
+        <div style="display:flex;gap:10px;margin-top:2px;">
+          <div style="flex:1;display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid var(--g400);border-radius:var(--r12);background:var(--g50);cursor:pointer;">
+            <div class="rcircle sel"><div class="rinner"></div></div><span style="font-size:14px;">👦 बालक</span>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;gap:8px;padding:12px;border:1.5px solid var(--gray-300);border-radius:var(--r12);cursor:pointer;">
+            <div class="rcircle"></div><span style="font-size:14px;">👧 बालिका</span>
+          </div>
+        </div>
+      </div>
+      <div class="igroup"><label class="ilabel">👩 माता का मोबाइल नंबर</label><input class="ifield" type="tel" placeholder="मोबाइल नंबर दर्ज करें"></div>
+      <div class="igroup"><label class="ilabel">🗣️ भाषा <span style="color:var(--r500)">*</span></label>
+        <select class="iselect"><option value="">भाषा चुनें</option><option>हिंदी</option><option>मराठी</option><option>तेलुगू</option><option>बांग्ला</option><option>गोंडी</option><option>संताली</option><option>भीली</option><option>उर्दू</option><option>अन्य</option></select>
+      </div>
+      <div class="igroup"><label class="ilabel">🏠 पता / बस्ती</label><input class="ifield" placeholder="गाँव / बस्ती / वार्ड"></div>
+      <div class="igroup"><label class="ilabel">🆔 आधार नंबर <span style="color:var(--gray-400);font-weight:400;">(वैकल्पिक)</span></label><input class="ifield" placeholder="12 अंक दर्ज करें (वैकल्पिक)"></div>
+
+      <div style="background:linear-gradient(135deg,var(--a50),#fff8e8);border-radius:var(--r12);padding:14px;margin-bottom:18px;border:1px solid #ffe0b2;">
+        <div style="font-size:13px;font-weight:700;color:var(--a700);margin-bottom:4px;">📸 बच्चे की फोटो लें</div>
+        <div style="font-size:12px;color:var(--gray-600);line-height:1.5;margin-bottom:10px;">QR कार्ड के लिए फोटो जरूरी है। यह पहचान में मदद करती है।</div>
+        <button class="btn-sm btn-sm-a" onclick="alert('📷 कैमरा खुल रहा है...')">📷 कैमरा खोलें</button>
+      </div>
+      <button class="btn btn-p" onclick="goTo('s05')">🪪 QR कार्ड जनरेट करें</button>
+      <div style="height:20px"></div>
+    </div></div>
+  </div>
+
+  <!-- ═══ S05 QR CARD ═══ -->
+  <div class="screen" id="s05">
+    <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg></div></div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s04')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbar-title w">QR कोड जनरेट हुआ</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <div class="enroll-ok">
+        <div style="font-size:40px;margin-bottom:8px;">✅</div>
+        <div style="font-size:17px;font-weight:800;color:var(--g800);">नामांकन सफल!</div>
+        <div style="font-size:13px;color:var(--g700);margin-top:5px;">बच्चे का ANKUR ID बन गया है</div>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:14px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:#E3F2FD;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;border:2px solid #BBDEFB;">👦🏽</div>
+        <div>
+          <div style="font-size:18px;font-weight:800;color:var(--gray-900);">आरव शर्मा</div>
+          <div style="font-size:13px;color:var(--gray-500);">उम्र: 3 वर्ष 2 माह</div>
+          <div style="font-size:13px;color:var(--gray-500);">माता: पूजा शर्मा · 98765 43210</div>
+          <div style="margin-top:6px;"><span class="chip">ANK-2025-34891</span></div>
+        </div>
+      </div>
+      <div class="qr-wrap">
+        <svg class="qr-svg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+          <rect width="160" height="160" fill="white"/>
+          <rect x="10" y="10" width="40" height="40" fill="#1b5e20" rx="4"/><rect x="15" y="15" width="30" height="30" fill="white" rx="3"/><rect x="20" y="20" width="20" height="20" fill="#1b5e20" rx="2"/>
+          <rect x="110" y="10" width="40" height="40" fill="#1b5e20" rx="4"/><rect x="115" y="15" width="30" height="30" fill="white" rx="3"/><rect x="120" y="20" width="20" height="20" fill="#1b5e20" rx="2"/>
+          <rect x="10" y="110" width="40" height="40" fill="#1b5e20" rx="4"/><rect x="15" y="115" width="30" height="30" fill="white" rx="3"/><rect x="20" y="120" width="20" height="20" fill="#1b5e20" rx="2"/>
+          <rect x="55" y="10" width="5" height="5" fill="#1b5e20"/><rect x="65" y="10" width="5" height="5" fill="#1b5e20"/><rect x="80" y="10" width="5" height="5" fill="#1b5e20"/><rect x="95" y="10" width="5" height="5" fill="#1b5e20"/>
+          <rect x="55" y="20" width="5" height="5" fill="#1b5e20"/><rect x="75" y="20" width="5" height="5" fill="#1b5e20"/><rect x="90" y="20" width="5" height="5" fill="#1b5e20"/>
+          <rect x="60" y="30" width="5" height="5" fill="#1b5e20"/><rect x="70" y="30" width="5" height="5" fill="#1b5e20"/><rect x="85" y="30" width="5" height="5" fill="#1b5e20"/><rect x="100" y="30" width="5" height="5" fill="#1b5e20"/>
+          <rect x="55" y="40" width="5" height="5" fill="#1b5e20"/><rect x="65" y="40" width="5" height="5" fill="#1b5e20"/><rect x="80" y="40" width="5" height="5" fill="#1b5e20"/><rect x="95" y="40" width="5" height="5" fill="#1b5e20"/>
+          <rect x="10" y="55" width="5" height="5" fill="#1b5e20"/><rect x="20" y="55" width="5" height="5" fill="#1b5e20"/><rect x="35" y="55" width="5" height="5" fill="#1b5e20"/><rect x="45" y="55" width="5" height="5" fill="#1b5e20"/>
+          <rect x="55" y="55" width="5" height="5" fill="#1b5e20"/><rect x="70" y="55" width="5" height="5" fill="#1b5e20"/><rect x="80" y="55" width="5" height="5" fill="#1b5e20"/><rect x="95" y="55" width="5" height="5" fill="#1b5e20"/>
+          <rect x="110" y="55" width="5" height="5" fill="#1b5e20"/><rect x="125" y="55" width="5" height="5" fill="#1b5e20"/><rect x="140" y="55" width="5" height="5" fill="#1b5e20"/>
+          <rect x="10" y="65" width="5" height="5" fill="#1b5e20"/><rect x="30" y="65" width="5" height="5" fill="#1b5e20"/><rect x="55" y="65" width="5" height="5" fill="#1b5e20"/><rect x="70" y="65" width="5" height="5" fill="#1b5e20"/>
+          <rect x="85" y="65" width="5" height="5" fill="#1b5e20"/><rect x="100" y="65" width="5" height="5" fill="#1b5e20"/><rect x="120" y="65" width="5" height="5" fill="#1b5e20"/><rect x="140" y="65" width="5" height="5" fill="#1b5e20"/>
+          <rect x="15" y="75" width="5" height="5" fill="#1b5e20"/><rect x="40" y="75" width="5" height="5" fill="#1b5e20"/><rect x="60" y="75" width="5" height="5" fill="#1b5e20"/>
+          <rect x="80" y="75" width="5" height="5" fill="#1b5e20"/><rect x="95" y="75" width="5" height="5" fill="#1b5e20"/><rect x="115" y="75" width="5" height="5" fill="#1b5e20"/><rect x="135" y="75" width="5" height="5" fill="#1b5e20"/>
+          <rect x="10" y="85" width="5" height="5" fill="#1b5e20"/><rect x="25" y="85" width="5" height="5" fill="#1b5e20"/><rect x="45" y="85" width="5" height="5" fill="#1b5e20"/><rect x="65" y="85" width="5" height="5" fill="#1b5e20"/>
+          <rect x="85" y="85" width="5" height="5" fill="#1b5e20"/><rect x="105" y="85" width="5" height="5" fill="#1b5e20"/><rect x="125" y="85" width="5" height="5" fill="#1b5e20"/><rect x="145" y="85" width="5" height="5" fill="#1b5e20"/>
+          <rect x="55" y="110" width="5" height="5" fill="#1b5e20"/><rect x="70" y="110" width="5" height="5" fill="#1b5e20"/><rect x="90" y="110" width="5" height="5" fill="#1b5e20"/><rect x="110" y="110" width="5" height="5" fill="#1b5e20"/><rect x="130" y="110" width="5" height="5" fill="#1b5e20"/>
+          <rect x="60" y="120" width="5" height="5" fill="#1b5e20"/><rect x="75" y="120" width="5" height="5" fill="#1b5e20"/><rect x="95" y="120" width="5" height="5" fill="#1b5e20"/><rect x="115" y="120" width="5" height="5" fill="#1b5e20"/><rect x="135" y="120" width="5" height="5" fill="#1b5e20"/>
+          <rect x="55" y="130" width="5" height="5" fill="#1b5e20"/><rect x="75" y="130" width="5" height="5" fill="#1b5e20"/><rect x="90" y="130" width="5" height="5" fill="#1b5e20"/><rect x="110" y="130" width="5" height="5" fill="#1b5e20"/><rect x="130" y="130" width="5" height="5" fill="#1b5e20"/><rect x="145" y="130" width="5" height="5" fill="#1b5e20"/>
+          <rect x="60" y="140" width="5" height="5" fill="#1b5e20"/><rect x="80" y="140" width="5" height="5" fill="#1b5e20"/><rect x="100" y="140" width="5" height="5" fill="#1b5e20"/><rect x="120" y="140" width="5" height="5" fill="#1b5e20"/><rect x="140" y="140" width="5" height="5" fill="#1b5e20"/>
+          <rect x="70" y="70" width="20" height="20" fill="white" rx="4"/>
+          <text x="80" y="84" text-anchor="middle" font-size="13">🌱</text>
+        </svg>
+      </div>
+      <div style="text-align:center;font-size:13px;color:var(--gray-500);margin-bottom:18px;">
+        ANKUR ID: <strong style="color:var(--g800);font-family:'Sora',sans-serif;">ANK-2025-34891</strong>
+      </div>
+      <button class="btn btn-p" onclick="alert('📸 QR गैलरी में सेव हो गया!')">📸 गैलरी में सेव करें</button>
+      <div style="height:12px"></div>
+      <button class="btn btn-s" onclick="goTo('s03')">← बच्चों की सूची पर जाएं</button>
+      <div style="height:20px"></div>
+    </div></div>
+  </div>
+
+  <!-- ═══ S06 CHILD PROFILE ═══ -->
+  <div class="screen" id="s06">
+    <div class="sbar" style="position:absolute;top:0;left:0;right:0;z-index:15;">
+      <span class="sbar-time" style="color:white;">9:41</span>
+      <div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M3.5 9C7.1 5.5 10.05 4 12 4s4.9 1.5 8.5 5" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M6 11.5C8.67 9 10.33 8 12 8s3.33 1 6 3.5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="white"/></svg></div>
+    </div>
+    <div class="scroll">
+      <div class="prof-hdr">
+        <div class="icon-btn w" style="margin-bottom:8px;position:relative;z-index:10;" onclick="goTo('s03')">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:10;">
+          <div style="width:72px;height:72px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:36px;border:3px solid rgba(255,255,255,0.4);box-shadow:0 4px 14px rgba(0,0,0,0.15);flex-shrink:0;">👦🏽</div>
+          <div>
+            <div style="font-size:22px;font-weight:800;color:white;">आरव शर्मा</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.82);">3 वर्ष 2 माह · बालक</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.82);">माता: पूजा शर्मा</div>
+            <div style="margin-top:8px;"><span class="badge bg">🟢 हरी (सामान्य विकास)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pad" style="margin-top:-8px;">
+        <div class="slabel">विकास के क्षेत्र</div>
+        <div class="dgrid">
+          <div class="di"><div class="di-icon">💬</div><div class="di-name">संचार</div><span class="badge bg" style="font-size:9px;">हरी</span></div>
+          <div class="di"><div class="di-icon">🧠</div><div class="di-name">सीखना</div><span class="badge bg" style="font-size:9px;">हरी</span></div>
+          <div class="di"><div class="di-icon">🤝</div><div class="di-name">सामाजिक</div><span class="badge ba" style="font-size:9px;">पीली</span></div>
+          <div class="di"><div class="di-icon">🏃</div><div class="di-name">व्यवहार</div><span class="badge bg" style="font-size:9px;">हरी</span></div>
+          <div class="di"><div class="di-icon">❤️</div><div class="di-name">स्वास्थ्य</div><span class="badge bg" style="font-size:9px;">हरी</span></div>
+          <div class="di"><div class="di-icon">🌟</div><div class="di-name">भावनात्मक</div><span class="badge bg" style="font-size:9px;">हरी</span></div>
+        </div>
+
+        <div class="slabel">इस सप्ताह की प्रगति</div>
+        <div class="card">
+          <div class="pbar-row"><div class="pl">संचार</div><div style="flex:1;"><div class="pbar"><div class="pfill" style="width:82%;background:var(--g600);"></div></div></div><div class="pv" style="color:var(--g700);">82%</div></div>
+          <div class="pbar-row"><div class="pl">सीखना</div><div style="flex:1;"><div class="pbar"><div class="pfill" style="width:78%;background:var(--g600);"></div></div></div><div class="pv" style="color:var(--g700);">78%</div></div>
+          <div class="pbar-row"><div class="pl">सामाजिक</div><div style="flex:1;"><div class="pbar"><div class="pfill" style="width:55%;background:var(--a400);"></div></div></div><div class="pv" style="color:var(--a700);">55%</div></div>
+          <div class="pbar-row"><div class="pl">स्वास्थ्य</div><div style="flex:1;"><div class="pbar"><div class="pfill" style="width:90%;background:var(--g600);"></div></div></div><div class="pv" style="color:var(--g700);">90%</div></div>
+        </div>
+
+        <div class="slabel">जानकारी</div>
+        <div class="card">
+          <div class="irow"><div class="irow-icon">🆔</div><div class="irow-c"><div class="irow-k">ANKUR ID</div><div class="irow-v" style="font-family:'Sora',sans-serif;">ANK-2025-34891</div></div></div>
+          <div class="irow"><div class="irow-icon">📅</div><div class="irow-c"><div class="irow-k">जन्म तिथि</div><div class="irow-v">15 मार्च 2022</div></div></div>
+          <div class="irow"><div class="irow-icon">🏠</div><div class="irow-c"><div class="irow-k">पता</div><div class="irow-v">वार्ड 5, गणेश नगर, पुणे</div></div></div>
+          <div class="irow"><div class="irow-icon">👩</div><div class="irow-c"><div class="irow-k">माता</div><div class="irow-v">पूजा शर्मा · 98765 43210</div></div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button class="btn btn-p" style="height:46px;font-size:13px;" onclick="goTo('s07')">📋 साप्ताहिक जांच</button>
+          <button class="btn btn-s" style="height:46px;font-size:13px;" onclick="goTo('s08')">🔍 M-CHAT</button>
+        </div>
+        <div style="height:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S07 WEEKLY ASSESSMENT ═══ -->
+  <div class="screen" id="s07">
+    <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg></div></div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s06')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbar-title w">साप्ताहिक आकलन</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="width:46px;height:46px;border-radius:50%;background:#E3F2FD;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid #BBDEFB;">👦🏽</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--gray-900);">आरव शर्मा</div>
+          <div style="font-size:12px;color:var(--gray-500);">3 वर्ष 2 माह · सप्ताह 24, 2025</div>
+        </div>
+        <div style="margin-left:auto;"><span class="badge bg-pill">सप्ताह 24</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;color:var(--gray-700);">प्रश्न 1 / 6</div>
+        <span class="badge bg">साप्ताहिक जांच</span>
+      </div>
+      <div class="pbar" style="height:8px;margin-bottom:20px;"><div class="pfill" style="width:16%;"></div></div>
+
+      <div class="qcard">
+        <div class="qnum">प्रश्न 1 — भाषा विकास</div>
+        <div class="qtext">क्या बच्चा 2-3 शब्दों के वाक्य बोल सकता है?</div>
+        <div class="qex">उदाहरण: "माँ पानी दो", "बाहर जाना है"</div>
+        <div class="ans-row">
+          <button class="abtn ay" onclick="alert('✅ उत्तर दर्ज हुआ')">हाँ ✓</button>
+          <button class="abtn an" onclick="alert('❌ उत्तर दर्ज हुआ')">नहीं ✗</button>
+        </div>
+      </div>
+
+      <div class="qcard">
+        <div class="qnum">प्रश्न 2 — स्थूल गतिशीलता</div>
+        <div class="qtext">क्या बच्चा सीढ़ियाँ चढ़-उतर सकता है?</div>
+        <div class="qex">उदाहरण: एक पैर से एक-एक सीढ़ी चढ़ना</div>
+        <div class="radio-g">
+          <label class="ri"><div class="rcircle sel"><div class="rinner"></div></div><span class="rlabel">हाँ, आसानी से</span></label>
+          <label class="ri"><div class="rcircle"></div><span class="rlabel">कभी-कभी</span></label>
+          <label class="ri"><div class="rcircle"></div><span class="rlabel">नहीं, अभी नहीं</span></label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:4px;">
+        <button class="btn btn-s" style="flex:1;height:46px;font-size:13px;" onclick="goTo('s06')">← पिछला</button>
+        <button class="btn btn-p" style="flex:1;height:46px;font-size:13px;" onclick="alert('✅ जांच सहेजी गई!')">अगला →</button>
+      </div>
+      <div style="height:20px"></div>
+    </div></div>
+  </div>
+
+  <!-- ═══ S08 M-CHAT ═══ -->
+  <div class="screen" id="s08">
+    <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg></div></div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s06')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbar-title w">M-CHAT स्क्रीनिंग</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;color:var(--gray-700);">1 / 20 प्रश्न</div>
+        <span class="badge br">ऑटिज़्म स्क्रीनिंग</span>
+      </div>
+      <div class="pbar" style="height:8px;margin-bottom:18px;background:var(--r100);"><div class="pfill" style="width:5%;background:var(--r500);"></div></div>
+
+      <div class="alert dang" style="margin-bottom:16px;"><div class="alert-icon">ℹ️</div><div class="alert-text">यह M-CHAT-R/F स्क्रीनिंग है। <strong>20 प्रश्नों</strong> का जवाब दें। यह निदान नहीं — एक जांच उपकरण है।</div></div>
+
+      <div class="qcard">
+        <div class="qnum" style="color:var(--r500);">प्रश्न 1 — सामाजिक मुस्कान</div>
+        <div class="qtext">क्या बच्चा आपकी ओर देखकर मुस्कुराता है?</div>
+        <div class="radio-g">
+          <label class="ri" style="border-color:var(--g400);background:var(--g50);"><div class="rcircle sel"><div class="rinner"></div></div><span class="rlabel">हाँ</span></label>
+          <label class="ri"><div class="rcircle"></div><span class="rlabel">नहीं</span></label>
+        </div>
+      </div>
+      <div class="qcard">
+        <div class="qnum" style="color:var(--r500);">प्रश्न 2 — आँख से संपर्क</div>
+        <div class="qtext">क्या बच्चा आपके साथ आँखें मिलाकर संपर्क करता है?</div>
+        <div class="radio-g">
+          <label class="ri"><div class="rcircle"></div><span class="rlabel">हाँ</span></label>
+          <label class="ri" style="border-color:var(--r300);background:var(--r50);"><div class="rcircle sel"><div class="rinner" style="background:var(--r500);"></div></div><span class="rlabel">नहीं</span></label>
+        </div>
+      </div>
+      <div class="qcard">
+        <div class="qnum" style="color:var(--r500);">प्रश्न 3 — इशारा करना</div>
+        <div class="qtext">क्या बच्चा इशारा करके वस्तुओं की ओर दिखाता है?</div>
+        <div class="radio-g">
+          <label class="ri"><div class="rcircle"></div><span class="rlabel">हाँ</span></label>
+          <label class="ri"><div class="rcircle"></div><span class="rlabel">नहीं</span></label>
+        </div>
+      </div>
+
+      <button class="btn btn-danger" style="margin-top:8px;" onclick="goTo('s09')">📊 स्कोर की गणना करें</button>
+      <div style="height:20px"></div>
+    </div></div>
+  </div>
+
+  <!-- ═══ S09 REFERRAL ═══ -->
+  <div class="screen" id="s09">
+    <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg></div></div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s08')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbar-title w">रेफरल लेटर</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <div class="alert dang"><div class="alert-icon">🚨</div><div class="alert-text"><strong>उच्च जोखिम पाया गया!</strong> M-CHAT स्कोर: 14/20. RBSK टीम को तुरंत रेफर करें।</div></div>
+
+      <div class="score-c" style="background:conic-gradient(var(--r500) 70%,var(--gray-200) 0);margin:16px auto;">
+        <div class="score-inner"><div class="score-num" style="color:var(--r500);">14</div><div class="score-of">/ 20</div></div>
+      </div>
+
+      <div class="letter">
+        <div class="letter-hdr">
+          <div class="letter-logo">🏛️</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--g800);">भारत सरकार</div>
+            <div style="font-size:11px;color:var(--gray-600);">महिला एवं बाल विकास मंत्रालय</div>
+            <div style="font-size:10px;color:var(--gray-500);">राष्ट्रीय बाल स्वास्थ्य कार्यक्रम (RBSK)</div>
+          </div>
+        </div>
+        <div style="font-size:14px;font-weight:800;color:var(--gray-900);margin-bottom:14px;text-align:center;text-decoration:underline;text-underline-offset:3px;">रेफरल पत्र</div>
+        <div class="letter-row"><div class="letter-k">बच्चे का नाम:</div><div class="letter-v">विवान यादव</div></div>
+        <div class="letter-row"><div class="letter-k">उम्र:</div><div class="letter-v">3 वर्ष 5 माह</div></div>
+        <div class="letter-row"><div class="letter-k">आंगनवाड़ी केंद्र:</div><div class="letter-v">केंद्र-12</div></div>
+        <div class="letter-row"><div class="letter-k">दिनांक:</div><div class="letter-v">24 मई 2025</div></div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-200);font-size:13px;line-height:1.8;color:var(--gray-700);">यह बच्चा विकासात्मक जांच में उच्च जोखिम श्रेणी (लाल) में पाया गया है। कृपया आगे के मूल्यांकन और परामर्श के लिए नजदीकी स्वास्थ्य केंद्र से संपर्क करें।</div>
+        <div class="stamp">ANKUR<br/>आंगनवाड़ी<br/>कार्यकर्ता</div>
+      </div>
+
+      <div style="height:14px"></div>
+      <button class="btn btn-wa" onclick="alert('📲 WhatsApp पर रेफरल भेजा गया!')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp पर शेयर करें
+      </button>
+      <div style="height:10px"></div>
+      <button class="btn btn-s" onclick="alert('📄 PDF डाउनलोड हो रही है...')">📄 PDF डाउनलोड करें</button>
+      <div style="height:20px"></div>
+    </div></div>
+  </div>
+
+  <!-- ═══ S10 SUPERVISOR ═══ -->
+  <div class="screen" id="s10">
+    <div class="sbar" style="background:var(--g700);">
+      <span class="sbar-time" style="color:white;">9:41</span>
+      <div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="white"/></svg></div>
+    </div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s03')"><svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+      <div class="tbar-title w">सुपरवाइज़र डैशबोर्ड</div>
+      <div class="icon-btn w">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M6 12h12M9 18h6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <div class="slabel" style="margin-top:0;">क्षेत्र का मानचित्र</div>
+      <div class="map-box">
+        <div class="map-grid"></div>
+        <div class="map-road-h" style="top:40%;"></div><div class="map-road-h" style="top:65%;"></div>
+        <div class="map-road-v" style="left:35%;"></div><div class="map-road-v" style="left:65%;"></div>
+        <div class="map-pin" style="top:20%;left:30%;" onclick="goTo('s03')"><div class="pin-c pin-g"></div></div>
+        <div class="map-pin" style="top:35%;left:55%;" onclick="goTo('s03')"><div class="pin-c pin-a"></div></div>
+        <div class="map-pin" style="top:55%;left:25%;" onclick="goTo('s03')"><div class="pin-c pin-r"></div></div>
+        <div class="map-pin" style="top:25%;left:70%;" onclick="goTo('s03')"><div class="pin-c pin-g"></div></div>
+        <div class="map-pin" style="top:65%;left:60%;" onclick="goTo('s03')"><div class="pin-c pin-a"></div></div>
+        <div style="position:absolute;bottom:10px;right:10px;background:rgba(255,255,255,0.92);border-radius:var(--r8);padding:6px 10px;font-size:10px;font-weight:700;box-shadow:var(--shadow-xs);">
+          <span style="color:var(--g700);">● सामान्य</span>  <span style="color:var(--a500);">● ध्यान दें</span>  <span style="color:var(--r500);">● अत्यावश्यक</span>
+        </div>
+      </div>
+
+      <div class="slabel">रिपोर्ट सारांश</div>
+      <div class="srow">
+        <div class="sc sc-g"><div class="sn">45</div><div class="sk">🟢 हरी</div></div>
+        <div class="sc sc-a"><div class="sn">12</div><div class="sk">🟡 पीली</div></div>
+        <div class="sc sc-r"><div class="sn">4</div><div class="sk">🔴 लाल</div></div>
+      </div>
+
+      <div class="slabel">साप्ताहिक ट्रेंड</div>
+      <div class="card">
+        <div class="bar-chart">
+          <div style="flex:1;"><div class="bc-bar" style="height:55%;background:var(--g400);"></div><div class="bc-label">सोम</div></div>
+          <div style="flex:1;"><div class="bc-bar" style="height:70%;background:var(--g400);"></div><div class="bc-label">मंग</div></div>
+          <div style="flex:1;"><div class="bc-bar" style="height:45%;background:var(--g400);"></div><div class="bc-label">बुध</div></div>
+          <div style="flex:1;"><div class="bc-bar" style="height:80%;background:var(--g600);"></div><div class="bc-label">गुरु</div></div>
+          <div style="flex:1;"><div class="bc-bar" style="height:60%;background:var(--g400);"></div><div class="bc-label">शुक्र</div></div>
+          <div style="flex:1;"><div class="bc-bar" style="height:35%;background:var(--a400);"></div><div class="bc-label">शनि</div></div>
+          <div style="flex:1;"><div class="bc-bar" style="height:20%;background:var(--gray-300);"></div><div class="bc-label">रवि</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);text-align:center;">इस सप्ताह जाँच किए गए बच्चे</div>
+      </div>
+
+      <div class="frow" style="margin-top:4px;">
+        <div class="fchip on">सभी केंद्र</div>
+        <div class="fchip">🚨 अत्यावश्यक</div>
+        <div class="fchip">📊 इस सप्ताह</div>
+        <div class="fchip">📋 लंबित जांच</div>
+      </div>
+
+      <div class="slabel">आंगनवाड़ी केंद्र</div>
+      <div class="card card-action" onclick="goTo('s03')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><div style="font-size:14px;font-weight:700;color:var(--gray-900);">🏠 केंद्र-12 · राधा देवी</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px;">34 बच्चे · अंतिम जांच: आज</div></div>
+          <span class="badge br">4 अत्यावश्यक</span>
+        </div>
+        <div class="pbar" style="margin-top:10px;"><div class="pfill" style="width:85%;"></div></div>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:4px;">जांच पूर्णता: 85%</div>
+      </div>
+      <div class="card card-action" onclick="goTo('s03')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><div style="font-size:14px;font-weight:700;color:var(--gray-900);">🏠 केंद्र-7 · सुनीता पाटिल</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px;">28 बच्चे · अंतिम जांच: कल</div></div>
+          <span class="badge ba">2 जोखिम</span>
+        </div>
+        <div class="pbar" style="margin-top:10px;"><div class="pfill" style="width:92%;"></div></div>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:4px;">जांच पूर्णता: 92%</div>
+      </div>
+      <div class="card card-action" onclick="goTo('s03')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><div style="font-size:14px;font-weight:700;color:var(--gray-900);">🏠 केंद्र-3 · मीना कुमारी</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px;">41 बच्चे · अंतिम जांच: 3 दिन पहले</div></div>
+          <span class="badge bg">सभी सामान्य</span>
+        </div>
+        <div class="pbar" style="margin-top:10px;"><div class="pfill" style="width:100%;"></div></div>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:4px;">जांच पूर्णता: 100% ✅</div>
+      </div>
+
+      <button class="btn btn-p" onclick="alert('📊 रिपोर्ट डाउनलोड हो रही है...')">⬇️ रिपोर्ट डाउनलोड करें</button>
+      <div style="height:20px"></div>
+    </div></div>
+    <div class="bnav">
+      <div class="ni" onclick="goTo('s03')">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" fill="#9E9E9E"/></svg></div>
+        <span class="ni-label">होम</span>
+      </div>
+      <div class="ni on">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="#2E7D32"/><path d="M8 12h8M8 8h8M8 16h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span class="ni-label">रिपोर्ट</span>
+        <div class="ni-dot"></div>
+      </div>
+      <div class="ni">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#9E9E9E" stroke-width="2" fill="none"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#9E9E9E" stroke-width="2"/></svg></div>
+        <span class="ni-label">सूचना</span>
+      </div>
+      <div class="ni">
+        <div class="ni-pip"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9E9E9E"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="#9E9E9E" stroke-width="2" fill="none"/></svg></div>
+        <span class="ni-label">प्रोफाइल</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ S11 NOTIFICATIONS ═══ -->
+  <div class="screen" id="s11">
+    <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg></div></div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s03')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbar-title w">सूचनाएं (3)</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <div class="slabel" style="margin-top:0;">🔴 तत्काल</div>
+      <div class="card" style="border-left:4px solid var(--r500);background:#fff9f8;">
+        <div style="font-size:13px;font-weight:700;color:var(--r700);margin-bottom:6px;">उच्च जोखिम चेतावनी</div>
+        <div style="font-size:12px;color:var(--gray-800);margin-bottom:8px;">विवान यादव (3 वर्ष 5 माह) को M-CHAT स्क्रीनिंग में उच्च जोखिम मिला है। तत्काल RBSK को रेफर करें।</div>
+        <div style="font-size:10px;color:var(--gray-500);">📅 आज, 10:30 AM</div>
+      </div>
+
+      <div class="slabel">🟡 महत्वपूर्ण</div>
+      <div class="card" style="border-left:4px solid var(--a400);background:rgba(255,160,0,0.05);">
+        <div style="font-size:13px;font-weight:700;color:var(--a700);margin-bottom:6px;">साप्ताहिक आकलन लंबित</div>
+        <div style="font-size:12px;color:var(--gray-800);margin-bottom:8px;">3 बच्चों का साप्ताहिक विकास आकलन पूरा नहीं हुआ है। इसे 2 दिन पहले पूरा किया जाना चाहिए था।</div>
+        <div style="font-size:10px;color:var(--gray-500);">📅 कल, 2:15 PM</div>
+      </div>
+
+      <div class="card" style="border-left:4px solid var(--a400);background:rgba(255,160,0,0.05);">
+        <div style="font-size:13px;font-weight:700;color:var(--a700);margin-bottom:6px;">डेटा सिंक बाकी है</div>
+        <div style="font-size:12px;color:var(--gray-800);margin-bottom:8px;">अंतिम 5 बच्चों का डेटा अभी सर्वर पर अपलोड नहीं हुआ है। WiFi से कनेक्ट करके सिंक करें।</div>
+        <div style="font-size:10px;color:var(--gray-500);">📅 30 मई, 5:45 PM</div>
+      </div>
+
+      <div class="slabel">ℹ️ सूचनाएं</div>
+      <div class="card" style="border-left:4px solid var(--g700);background:rgba(46,125,50,0.05);">
+        <div style="font-size:13px;font-weight:700;color:var(--g700);margin-bottom:6px;">📄 मासिक रिपोर्ट तैयार</div>
+        <div style="font-size:12px;color:var(--gray-800);margin-bottom:8px;">मई 2025 की ICDS रिपोर्ट तैयार है। इसे डाउनलोड करने के लिए यहाँ क्लिक करें।</div>
+        <div style="font-size:10px;color:var(--gray-500);">📅 1 जून, 9:20 AM</div>
+      </div>
+
+      <div style="height:10px"></div>
+    </div></div>
+  </div>
+
+  <!-- ═══ S12 PROFILE ═══ -->
+  <div class="screen" id="s12">
+    <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><svg viewBox="0 0 24 24" fill="none"><path d="M1 6.5C5.33 2.17 10.67 0 12 0s6.67 2.17 11 6.5" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="15" r="2" fill="#111"/></svg></div></div>
+    <div class="tbar tbar-green">
+      <div class="icon-btn w" onclick="goTo('s03')"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbar-title w">मेरी प्रोफाइल</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="scroll"><div class="pad">
+      <!-- Profile Header -->
+      <div class="card" style="text-align:center;background:linear-gradient(135deg,var(--g700),var(--g600));color:white;padding:20px;margin-bottom:16px;border:none;">
+        <div style="font-size:60px;margin-bottom:12px;">👩🏽</div>
+        <div style="font-size:18px;font-weight:800;margin-bottom:2px;">राधा देवी</div>
+        <div style="font-size:13px;opacity:0.9;margin-bottom:8px;">आंगनवाड़ी कार्यकर्ता (AWW)</div>
+        <div style="font-size:11px;opacity:0.85;background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:16px;display:inline-block;">🟢 सक्रिय</div>
+      </div>
+
+      <!-- Basic Info -->
+      <div class="slabel" style="margin-top:0;">व्यक्तिगत जानकारी</div>
+      <div class="irow">
+        <div class="irow-icon">👤</div>
+        <div class="irow-c">
+          <div class="irow-k">कर्मचारी ID</div>
+          <div class="irow-v">AWW-12-2024</div>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="irow-icon">📞</div>
+        <div class="irow-c">
+          <div class="irow-k">मोबाइल नंबर</div>
+          <div class="irow-v">+91 98765 43210</div>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="irow-icon">📧</div>
+        <div class="irow-c">
+          <div class="irow-k">ईमेल</div>
+          <div class="irow-v">radha.devi@ankur.gov.in</div>
+        </div>
+      </div>
+
+      <!-- Center Info -->
+      <div class="slabel">आंगनवाड़ी केंद्र</div>
+      <div class="irow">
+        <div class="irow-icon">🏠</div>
+        <div class="irow-c">
+          <div class="irow-k">केंद्र का नाम</div>
+          <div class="irow-v">आंगनवाड़ी केंद्र-12</div>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="irow-icon">📍</div>
+        <div class="irow-c">
+          <div class="irow-k">स्थान</div>
+          <div class="irow-v">पुणे, महाराष्ट्र</div>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="irow-icon">👶</div>
+        <div class="irow-c">
+          <div class="irow-k">पंजीकृत बच्चे</div>
+          <div class="irow-v">34</div>
+        </div>
+      </div>
+
+      <!-- Account Info -->
+      <div class="slabel">खाता जानकारी</div>
+      <div class="irow">
+        <div class="irow-icon">🔑</div>
+        <div class="irow-c">
+          <div class="irow-k">पहुंच स्तर</div>
+          <div class="irow-v"><span class="badge bg">आंगनवाड़ी कार्यकर्ता</span></div>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="irow-icon">🗓️</div>
+        <div class="irow-c">
+          <div class="irow-k">अंतिम लॉगिन</div>
+          <div class="irow-v">आज, 9:15 AM</div>
+        </div>
+      </div>
+      <div class="irow">
+        <div class="irow-icon">🗓️</div>
+        <div class="irow-c">
+          <div class="irow-k">सदस्यता की तारीख</div>
+          <div class="irow-v">15 मार्च 2024</div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="slabel">सेटिंग्स</div>
+      <button class="btn btn-s" style="margin-bottom:10px;font-size:13px;">🔐 पासवर्ड बदलें</button>
+      <button class="btn btn-s" style="margin-bottom:10px;font-size:13px;">🌐 भाषा: हिंदी ▾</button>
+      <button class="btn btn-s" style="margin-bottom:10px;font-size:13px;">📋 नियम व शर्तें</button>
+      <button class="btn btn-danger" style="font-size:13px;">⏻ लॉगआउट करें</button>
+
+      <div style="height:20px"></div>
+    </div></div>
+  </div>
+
+</div><!-- /phone -->
+
+<div style="display:flex;gap:10px;width:90%;margin:20px auto;">
+
+<a href="dashboard.html"
+   style="
+      flex:1;
+      padding:14px;
+      background:#2E7D32;
+      color:white;
+      text-align:center;
+      text-decoration:none;
+      border-radius:5px;
+      font-weight:600;">
+   📊 Supervisor
+</a>
+
+<a href="admin.html"
+   style="
+      flex:1;
+      padding:14px;
+      background:#1565C0;
+      color:white;
+      text-align:center;
+      text-decoration:none;
+      border-radius:5px;
+      font-weight:600;">
+   🏛️ Admin
+</a>
+
+</div>
+
+<div style="color:rgba(165,214,167,0.5);font-size:11px;margin-top:20px;text-align:center;font-family:'Sora',sans-serif;line-height:2;max-width:420px;z-index:1;position:relative;">
+  <strong style="color:rgba(165,214,167,0.8);">Flow:</strong>
+  Login → OTP → Children List → Enroll → QR Card → Child Profile → Weekly Assessment → M-CHAT → Referral Letter → Supervisor Dashboard
+  <br>
+  <span style="color:rgba(255,255,255,0.25);">Click through every screen · Fully navigable · Hindi UI throughout</span>
+</div>
+
+<script>
+function goTo(id,back){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active','anim-in','anim-back');
+  });
+  const t=document.getElementById(id);
+  if(t){
+    t.classList.add('active');
+    void t.offsetWidth;
+    t.classList.add(back?'anim-back':'anim-in');
+    const sc=t.querySelector('.scroll');
+    if(sc)sc.scrollTop=0;
+  }
+}
+</script>
+</body>
+</html>

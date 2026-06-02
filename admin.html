@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANKUR – Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #1a5c2a;
+    --green-mid: #2e7d46;
+    --green-light: #4caf6e;
+    --green-bg: #e8f5ec;
+    --orange: #f5a623;
+    --red: #e53935;
+    --blue: #1976d2;
+    --purple: #7b1fa2;
+    --teal: #00897b;
+    --text-dark: #1a2332;
+    --text-mid: #4a5568;
+    --text-light: #718096;
+    --border: #e2e8f0;
+    --card-bg: #ffffff;
+    --page-bg: #f4f7f5;
+    --sidebar-bg: #1a5c2a;
+    --sidebar-active: #2e7d46;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--page-bg);
+    color: var(--text-dark);
+    font-size: 13px;
+  }
+
+  h1,h2,h3,h4,h5 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  .section-header {
+    text-align: center;
+    padding: 28px 0 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: .3px;
+  }
+  .section-header.admin { background: #1a5c2a; color: #fff; }
+
+  .dashboard-shell {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: #fff;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .logo-text { color: #fff; }
+  .logo-text .brand { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 15px; line-height: 1; }
+  .logo-text .tagline { font-size: 10px; opacity: .75; line-height: 1.3; margin-top: 2px; }
+
+  .sidebar-nav { flex: 1; padding: 8px 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px;
+    color: rgba(255,255,255,0.75);
+    cursor: pointer;
+    border-radius: 0;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background .15s, color .15s;
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-item.active {
+    background: var(--sidebar-active);
+    color: #fff;
+    border-left: 3px solid #a5d6a7;
+  }
+  .nav-item .icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-item .badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 10px;
+    padding: 1px 6px;
+    font-weight: 700;
+  }
+  .nav-item .arrow { margin-left: auto; font-size: 10px; opacity: .5; }
+
+  .sidebar-logout {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    margin-top: auto;
+  }
+  .logout-btn {
+    display: flex; align-items: center; gap: 8px;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 0;
+  }
+  .logout-btn:hover { color: #fff; }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow-sm);
+  }
+  .topbar-menu { font-size: 18px; color: var(--text-mid); cursor: pointer; }
+  .topbar-filter {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--page-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: var(--text-dark);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .topbar-filter select {
+    border: none; background: transparent; outline: none;
+    font-size: 12px; color: var(--text-dark);
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+  .topbar-filter label { color: var(--text-light); font-size: 11px; }
+  .topbar-sync {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--green-mid);
+    background: var(--green-bg);
+    padding: 4px 10px; border-radius: 20px;
+    font-weight: 600;
+  }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .lang-toggle {
+    display: flex; gap: 2px;
+    background: var(--page-bg); border-radius: 6px; padding: 3px;
+    border: 1px solid var(--border);
+  }
+  .lang-btn {
+    padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    cursor: pointer; border: none; background: transparent; color: var(--text-mid);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .lang-btn.active { background: #fff; color: var(--green-dark); box-shadow: var(--shadow-sm); }
+  .notif-btn {
+    position: relative; cursor: pointer;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    background: var(--page-bg); border: 1px solid var(--border);
+    font-size: 16px;
+  }
+  .notif-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: var(--red); color: #fff;
+    border-radius: 10px; font-size: 9px; font-weight: 700;
+    padding: 1px 5px; border: 2px solid #fff;
+  }
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--page-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 10px;
+    cursor: pointer;
+  }
+  .user-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--green-mid);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .user-info { line-height: 1.2; }
+  .user-name { font-size: 12px; font-weight: 700; color: var(--text-dark); }
+  .user-role { font-size: 10px; color: var(--text-light); }
+
+  .page-content { padding: 20px 24px; flex: 1; overflow-y: auto; }
+
+  .stats-row {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stats-row.cols-6 { grid-template-columns: repeat(6, 1fr); }
+
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: box-shadow .2s, transform .2s;
+    animation: fadeUp .4s ease both;
+  }
+  .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+  .stat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .icon-green   { background: #e8f5ec; }
+  .icon-orange  { background: #fff3e0; }
+  .icon-red     { background: #ffebee; }
+  .icon-purple  { background: #f3e5f5; }
+  .icon-blue    { background: #e3f2fd; }
+  .icon-teal    { background: #e0f2f1; }
+
+  .stat-body { flex: 1; min-width: 0; }
+  .stat-label { font-size: 11px; color: var(--text-light); font-weight: 500; margin-bottom: 4px; }
+  .stat-value { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+  .stat-delta { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .delta-up   { color: var(--green-mid); }
+  .delta-pct  { color: var(--text-mid); }
+
+  .content-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .content-grid.three-col-equal { grid-template-columns: 1fr 1fr 1fr; }
+  .content-grid.two-col   { grid-template-columns: 1.4fr 1fr; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    animation: fadeUp .5s ease both;
+  }
+  .card-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .view-all {
+    font-size: 11px; color: var(--green-mid); font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 3px;
+    text-decoration: none;
+  }
+  .view-all:hover { text-decoration: underline; }
+
+  .admin-table { width: 100%; border-collapse: collapse; }
+  .admin-table th {
+    text-align: left; font-size: 10px; font-weight: 700;
+    color: var(--text-light); text-transform: uppercase;
+    letter-spacing: .5px; padding: 0 10px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .admin-table td {
+    padding: 8px 10px; border-bottom: 1px solid #f0f4f2;
+    font-size: 12px; vertical-align: middle;
+  }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .admin-table tr:hover td { background: #f9fbfa; }
+  .eye-btn {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: var(--green-bg); border: 1px solid #c8e6c9;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 12px;
+    transition: background .15s;
+  }
+  .eye-btn:hover { background: #c8e6c9; }
+
+  .heatmap-container {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .maha-map {
+    flex: 1;
+    height: 200px;
+    position: relative;
+  }
+  .heatmap-legend { min-width: 130px; }
+  .heatmap-legend-item {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px; font-size: 11px; color: var(--text-mid);
+  }
+  .hl-box { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+  .sys-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f4f2;
+    font-size: 12px;
+  }
+  .sys-row:last-child { border-bottom: none; }
+  .sys-key { color: var(--text-light); }
+  .sys-val { font-weight: 600; color: var(--text-dark); display: flex; align-items: center; gap: 5px; }
+  .status-ok { color: var(--green-mid); font-size: 13px; }
+  .progress-bar {
+    width: 90px; height: 6px; background: #e2e8f0;
+    border-radius: 3px; overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: var(--green-mid); border-radius: 3px; }
+
+  .alert-card { background: var(--card-bg); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+  .alert-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .alert-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .alert-badge { background: var(--red); color: #fff; border-radius: 10px; font-size: 10px; font-weight: 700; padding: 1px 7px; }
+  .alert-item { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; border-bottom: 1px solid #f0f4f2; font-size: 11px; color: var(--text-mid); line-height: 1.4; }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); flex-shrink: 0; margin-top: 4px; }
+  .alert-dot.red { background: var(--red); }
+
+  .activity-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0f4f2; font-size: 11px; color: var(--text-mid); line-height: 1.4; }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green-light); flex-shrink: 0; margin-top: 4px; }
+
+  .quick-actions-bar {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    animation: fadeUp .6s ease both;
+  }
+  .qa-label {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    color: var(--text-mid);
+    margin-right: 4px;
+    white-space: nowrap;
+  }
+  .qa-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: var(--page-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .qa-btn:hover { background: var(--green-bg); border-color: var(--green-light); color: var(--green-dark); }
+  .qa-btn .qicon { font-size: 14px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .stat-card:nth-child(1) { animation-delay: .05s; }
+  .stat-card:nth-child(2) { animation-delay: .10s; }
+  .stat-card:nth-child(3) { animation-delay: .15s; }
+  .stat-card:nth-child(4) { animation-delay: .20s; }
+  .stat-card:nth-child(5) { animation-delay: .25s; }
+  .stat-card:nth-child(6) { animation-delay: .30s; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     ADMIN DASHBOARD
+══════════════════════════════════════════════════ -->
+<div class="section-header admin">🛡️ ADMIN DASHBOARD — System-wide View &amp; Management</div>
+
+<div class="dashboard-shell">
+
+  <!-- Admin Sidebar -->
+  <nav class="sidebar" style="background:#1a3a28;">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🌱</div>
+      <div class="logo-text">
+        <div class="brand">ANKUR</div>
+        <div class="tagline">Early Childhood<br>Tracking System</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" style="background:#2e5c40;border-left:3px solid #a5d6a7;"><span class="icon">🏠</span> Admin Dashboard</div>
+      <div class="nav-item"><span class="icon">👥</span> Users &amp; Roles</div>
+      <div class="nav-item"><span class="icon">👶</span> Children <span class="arrow">›</span></div>
+      <div class="nav-item"><span class="icon">📋</span> Assessments <span class="arrow">›</span></div>
+      <div class="nav-item"><span class="icon">🧠</span> M-CHAT Screening <span class="arrow">›</span></div>
+      <div class="nav-item"><span class="icon">📤</span> Referrals <span class="arrow">›</span></div>
+      <div class="nav-item"><span class="icon">📊</span> Reports &amp; Analytics <span class="arrow">›</span></div>
+      <div class="nav-item"><span class="icon">🗄️</span> Master Data <span class="arrow">›</span></div>
+      <div class="nav-item"><span class="icon">⚙️</span> System Settings <span class="arrow">›</span></div>
+      <div class="nav-item"><span class="icon">📝</span> Audit Logs</div>
+    </div>
+    <div class="sidebar-logout">
+      <div class="logout-btn">⏻&nbsp; Logout</div>
+    </div>
+  </nav>
+
+  <!-- Admin Main -->
+  <div class="main">
+    <!-- Admin Topbar -->
+    <div class="topbar">
+      <div class="topbar-menu">☰</div>
+      <div class="topbar-filter">
+        <label>State:</label>
+        <select><option>Maharashtra</option></select>
+      </div>
+      <div class="topbar-filter">
+        <label>Districts:</label>
+        <select><option>All Districts</option></select>
+      </div>
+      <div class="topbar-filter">
+        <label>Blocks:</label>
+        <select><option>All Blocks</option></select>
+      </div>
+      <div class="topbar-sync">🔄 Last Synced: Today, 10:30 AM</div>
+      <div class="topbar-right">
+        <div class="lang-toggle">
+          <button class="lang-btn active">English</button>
+          <button class="lang-btn">हिंदी</button>
+        </div>
+        <div class="notif-btn">🔔<span class="notif-badge" style="background:#e53935;">12</span></div>
+        <div class="user-chip">
+          <div class="user-avatar" style="background:#1a5c2a;">AU</div>
+          <div class="user-info">
+            <div class="user-name">Admin User</div>
+            <div class="user-role">System Administrator</div>
+          </div>
+          <span style="font-size:10px;color:#aaa;margin-left:4px;">▾</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Page Content -->
+    <div class="page-content">
+
+      <!-- Admin Stat Cards -->
+      <div class="stats-row cols-6">
+        <div class="stat-card">
+          <div class="stat-icon icon-green">👥</div>
+          <div class="stat-body">
+            <div class="stat-label">Total Children</div>
+            <div class="stat-value" style="font-size:20px;">8,54,321</div>
+            <div class="stat-delta delta-up">↑ 6.7% this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-orange">🏫</div>
+          <div class="stat-body">
+            <div class="stat-label">Total Anganwadi Workers</div>
+            <div class="stat-value" style="font-size:20px;">18,745</div>
+            <div class="stat-sub">Active: 17,892</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-teal">👤</div>
+          <div class="stat-body">
+            <div class="stat-label">Total Supervisors</div>
+            <div class="stat-value" style="font-size:20px;">2,315</div>
+            <div class="stat-sub">Active: 2,210</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-red">⚠️</div>
+          <div class="stat-body">
+            <div class="stat-label">At Risk Children</div>
+            <div class="stat-value" style="font-size:20px;">1,45,231</div>
+            <div class="stat-sub">17.0% of total</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-purple">📤</div>
+          <div class="stat-body">
+            <div class="stat-label">Referred Children</div>
+            <div class="stat-value" style="font-size:20px;">62,341</div>
+            <div class="stat-sub">7.3% of total</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-blue">📋</div>
+          <div class="stat-body">
+            <div class="stat-label">Total Assessments</div>
+            <div class="stat-value" style="font-size:20px;">12,36,541</div>
+            <div class="stat-delta delta-up">↑ 9.2% this month</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Three-col -->
+      <div class="content-grid three-col-equal">
+
+        <!-- District Table -->
+        <div class="card" style="grid-column: span 1;">
+          <div class="card-title">State / District Overview</div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>District</th>
+                <th>Total Children</th>
+                <th>Normal</th>
+                <th>At Risk</th>
+                <th>Referred</th>
+                <th>Assessments</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;">Pune</td>
+                <td>1,24,583</td>
+                <td><span style="color:#2e7d46;font-weight:600;">89,245 (71.7%)</span></td>
+                <td><span style="color:#e65100;">21,458 (17.2%)</span></td>
+                <td>13,880 (11.1%)</td>
+                <td>1,82,450</td>
+                <td><div class="eye-btn">👁</div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Mumbai</td>
+                <td>98,745</td>
+                <td><span style="color:#2e7d46;font-weight:600;">70,215 (71.1%)</span></td>
+                <td><span style="color:#e65100;">17,320 (17.5%)</span></td>
+                <td>11,210 (11.4%)</td>
+                <td>1,45,231</td>
+                <td><div class="eye-btn">👁</div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Nagpur</td>
+                <td>87,654</td>
+                <td><span style="color:#2e7d46;font-weight:600;">61,245 (70.0%)</span></td>
+                <td><span style="color:#e65100;">15,780 (18.0%)</span></td>
+                <td>10,629 (12.0%)</td>
+                <td>1,23,658</td>
+                <td><div class="eye-btn">👁</div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Nashik</td>
+                <td>76,321</td>
+                <td><span style="color:#2e7d46;font-weight:600;">54,231 (71.1%)</span></td>
+                <td><span style="color:#e65100;">13,245 (17.4%)</span></td>
+                <td>8,845 (11.6%)</td>
+                <td>1,02,369</td>
+                <td><div class="eye-btn">👁</div></td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;">Aurangabad</td>
+                <td>65,432</td>
+                <td><span style="color:#2e7d46;font-weight:600;">46,215 (70.6%)</span></td>
+                <td><span style="color:#e65100;">11,235 (17.2%)</span></td>
+                <td>7,982 (12.2%)</td>
+                <td>87,654</td>
+                <td><div class="eye-btn">👁</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Heatmap -->
+        <div class="card">
+          <div class="card-title">Maharashtra At-Risk Heatmap</div>
+          <div class="heatmap-container">
+            <div class="maha-map">
+              <!-- SVG Maharashtra silhouette approximation -->
+              <svg viewBox="0 0 260 220" width="100%" height="100%">
+                <!-- Background -->
+                <rect width="260" height="220" fill="#f4f7f5" rx="8"/>
+                <!-- Maharashtra shape (simplified polygon) -->
+                <polygon points="
+                  50,30 70,20 100,18 130,22 160,18 190,25 210,40 220,60 215,85
+                  200,105 195,130 185,155 175,175 160,190 140,200 120,198
+                  100,190 80,180 60,165 45,145 35,120 30,95 32,70 40,50
+                " fill="#ffcdd2" stroke="#ef9a9a" stroke-width="1.5"/>
+                <!-- District blobs -->
+                <ellipse cx="130" cy="80" rx="35" ry="28" fill="#e53935" opacity="0.7"/>
+                <ellipse cx="90" cy="55" rx="28" ry="22" fill="#e53935" opacity="0.85"/>
+                <ellipse cx="170" cy="65" rx="25" ry="20" fill="#ef9a9a" opacity="0.6"/>
+                <ellipse cx="155" cy="125" rx="22" ry="18" fill="#ffb3b3" opacity="0.5"/>
+                <ellipse cx="85" cy="130" rx="20" ry="16" fill="#ef9a9a" opacity="0.4"/>
+                <ellipse cx="120" cy="165" rx="25" ry="18" fill="#ffcdd2" opacity="0.5"/>
+                <!-- City dots -->
+                <circle cx="130" cy="82" r="4" fill="#b71c1c" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="90"  cy="52" r="3.5" fill="#b71c1c" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="170" cy="66" r="3" fill="#c62828" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="155" cy="128" r="3" fill="#c62828" stroke="#fff" stroke-width="1.5"/>
+                <!-- City labels -->
+                <text x="134" y="79" font-size="8" font-weight="700" fill="#b71c1c">Pune</text>
+                <text x="70" y="49" font-size="7" font-weight="600" fill="#b71c1c">Mumbai</text>
+                <text x="174" y="63" font-size="7" font-weight="600" fill="#b71c1c">Nagpur</text>
+                <text x="158" y="125" font-size="7" font-weight="600" fill="#b71c1c">Nashik</text>
+              </svg>
+            </div>
+            <div class="heatmap-legend">
+              <div class="heatmap-legend-item">
+                <div class="hl-box" style="background:#e53935;"></div>
+                <span>High (20% or more)</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="hl-box" style="background:#f5a623;"></div>
+                <span>Medium (10% – 20%)</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="hl-box" style="background:#a5d6a7;"></div>
+                <span>Low (less than 10%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="card">
+          <div class="card-title">System Overview</div>
+          <div class="sys-row">
+            <span class="sys-key">Active Users</span>
+            <span class="sys-val">20,102</span>
+          </div>
+          <div class="sys-row">
+            <span class="sys-key">Today's Logins</span>
+            <span class="sys-val">4,231</span>
+          </div>
+          <div class="sys-row">
+            <span class="sys-key">Data Sync Status</span>
+            <span class="sys-val">All Good <span class="status-ok">✅</span></span>
+          </div>
+          <div class="sys-row">
+            <span class="sys-key">Storage Used</span>
+            <span class="sys-val">
+              45.3 GB / 100 GB
+              <div class="progress-bar"><div class="progress-fill" style="width:45%;"></div></div>
+            </span>
+          </div>
+          <div class="sys-row">
+            <span class="sys-key">App Version</span>
+            <span class="sys-val" style="color:var(--green-mid);">v2.1.0 (Latest)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Admin Bottom Row -->
+      <div class="content-grid two-col" style="margin-top:0;">
+
+        <!-- Alerts & Activities side-by-side -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <!-- Alerts -->
+          <div class="alert-card" style="animation: fadeUp .5s ease both .2s; opacity:0; animation-fill-mode:both;">
+            <div class="alert-header">
+              <div class="alert-title">🔔 Alerts &amp; Notifications <span class="alert-badge">12</span></div>
+              <a class="view-all">View All →</a>
+            </div>
+            <div class="alert-item"><div class="alert-dot red"></div>2,341 children pending assessments</div>
+            <div class="alert-item"><div class="alert-dot"></div>145 workers inactive for more than 7 days</div>
+            <div class="alert-item"><div class="alert-dot"></div>32 data sync issues in remote areas</div>
+          </div>
+          <!-- Recent Activities -->
+          <div class="alert-card" style="animation: fadeUp .5s ease both .3s; opacity:0; animation-fill-mode:both;">
+            <div class="alert-header">
+              <div class="alert-title" style="font-size:13px;">📋 Recent Activities</div>
+              <a class="view-all">View All →</a>
+            </div>
+            <div class="activity-item"><div class="activity-dot"></div>New user 'Anita Deshmukh' added</div>
+            <div class="activity-item"><div class="activity-dot"></div>5,231 children imported in Mumbai District</div>
+            <div class="activity-item"><div class="activity-dot"></div>System backup completed successfully</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions Admin -->
+        <div class="quick-actions-bar" style="margin-bottom:0;flex-direction:column;align-items:flex-start;gap:12px;">
+          <span class="qa-label" style="font-size:13px;">Quick Actions</span>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="qa-btn"><span class="qicon">👤</span> Add User</button>
+            <button class="qa-btn"><span class="qicon">📥</span> Bulk Import Children</button>
+            <button class="qa-btn"><span class="qicon">📄</span> Generate State Report</button>
+            <button class="qa-btn"><span class="qicon">🗄️</span> Manage Master Data</button>
+            <button class="qa-btn"><span class="qicon">⚙️</span> System Settings</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /admin page content -->
+  </div><!-- /admin main -->
+</div><!-- /admin dashboard-shell -->
+
+<script>
+  // Animate numbers
+  function animateValue(el, end, duration) {
+    let start = 0;
+    const step = Math.ceil(end / (duration / 16));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) { start = end; clearInterval(timer); }
+      el.textContent = start.toLocaleString('en-IN');
+    }, 16);
+  }
+
+  document.querySelectorAll('.stat-value').forEach(el => {
+    const raw = el.textContent.replace(/,/g,'');
+    const num = parseInt(raw);
+    if (!isNaN(num) && num > 100) {
+      el.textContent = '0';
+      setTimeout(() => animateValue(el, num, 1000), 300);
+    }
+  });
+
+  // Button hover effect
+  document.querySelectorAll('.qa-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.style.transform = 'scale(0.96)';
+      setTimeout(() => btn.style.transform = '', 150);
+    });
+  });
+
+  // Map dot tooltip simulation
+  document.querySelectorAll('.map-dot').forEach(dot => {
+    dot.title = 'Click to view area details';
+  });
+</script>
+</body>
+</html>
